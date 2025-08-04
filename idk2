@@ -76,6 +76,102 @@ end)
    end,
 })
 
+local Toggle = MainTab:CreateToggle({
+   Name = "Fly",
+   CurrentValue = false,
+   Flag = "Toggle2", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        -- FlyScriptMobile.lua
+-- LocalScript for Roblox to let a player fly using mobile joystick controls.
+-- Place this LocalScript in StarterPlayerScripts.
+
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Fly settings
+local FLY_SPEED = 50 -- Adjust for your game
+
+local flying = false
+local flyGyro, flyVelocity
+
+-- Toggle fly on/off (double-tap jump)
+local lastJump = 0
+UserInputService.JumpRequest:Connect(function()
+    local now = tick()
+    if now - lastJump < 0.35 then -- double tap
+        flying = not flying
+        if flying then
+            humanoidRootPart.Anchored = false -- Just in case
+            flyGyro = Instance.new("BodyGyro")
+            flyGyro.P = 9e4
+            flyGyro.MaxTorque = Vector3.new(9e4, 9e4, 9e4)
+            flyGyro.CFrame = humanoidRootPart.CFrame
+            flyGyro.Parent = humanoidRootPart
+
+            flyVelocity = Instance.new("BodyVelocity")
+            flyVelocity.MaxForce = Vector3.new(1e5, 1e5, 1e5)
+            flyVelocity.Velocity = Vector3.new()
+            flyVelocity.Parent = humanoidRootPart
+        else
+            if flyGyro then flyGyro:Destroy() flyGyro = nil end
+            if flyVelocity then flyVelocity:Destroy() flyVelocity = nil end
+        end
+    end
+    lastJump = now
+end)
+
+-- Core fly loop
+RunService.RenderStepped:Connect(function()
+    if flying and flyVelocity and flyGyro then
+        local moveDir = Vector3.new()
+        if character:FindFirstChildOfClass("Humanoid") then
+            moveDir = character:FindFirstChildOfClass("Humanoid").MoveDirection
+        end
+
+        local cam = workspace.CurrentCamera
+        local flyDirection = Vector3.new()
+        if cam then
+            -- Camera look direction
+            local camCF = cam.CFrame
+            -- Move according to camera look direction, scaled by joystick magnitude
+            flyDirection = (camCF.LookVector * moveDir.Z + camCF.RightVector * moveDir.X)
+            if flyDirection.Magnitude > 1 then
+                flyDirection = flyDirection.Unit
+            end
+        end
+
+        -- Compose velocity (full 3D movement based on camera and joystick)
+        flyVelocity.Velocity = flyDirection * FLY_SPEED
+        flyGyro.CFrame = workspace.CurrentCamera.CFrame
+
+        -- Prevent falling
+        if character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid").PlatformStand = true
+        end
+    else
+        -- Reset PlatformStand when not flying
+        if character:FindFirstChildOfClass("Humanoid") then
+            character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+        end
+    end
+end)
+
+-- Clean up on character respawn
+player.CharacterAdded:Connect(function(char)
+    character = char
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    flying = false
+    if flyGyro then flyGyro:Destroy() flyGyro = nil end
+    if flyVelocity then flyVelocity:Destroy() flyVelocity = nil end
+end)
+   end,
+})
+
 local Button = MainTab:CreateButton({
    Name = "Dark Dex",
    Callback = function()
@@ -90,5 +186,60 @@ local Button = MainTab:CreateButton({
    Name = "Infinite Yield",
    Callback = function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))()
+   end,
+})
+
+local Button = MainTab:CreateButton({
+   Name = "rspy-ketamine",
+   Callback = function()
+        -- Hope you will enjoy using it ;)
+loadstring(game:HttpGet("https://raw.githubusercontent.com/InfernusScripts/Ketamine/refs/heads/main/Ketamine.lua"))()
+   end,
+})
+
+local MiscTab = Window:CreateTab("Misc", nil) -- Title, Image
+local MToolsSection = MiscTab:CreateSection("Tools")
+
+local Button = MiscTab:CreateButton({
+   Name = "TpTool",
+   Callback = function()
+        -- Script to create a Teleport Tool and give it directly to the local player's Backpack
+-- Place this LocalScript in StarterPlayerScripts or StarterCharacterScripts
+
+-- Create the Tool
+local tool = Instance.new("Tool")
+tool.Name = "TPTool"
+tool.RequiresHandle = false -- No physical handle needed
+
+-- Create the teleport LocalScript
+local teleportScript = Instance.new("LocalScript")
+teleportScript.Name = "TeleportScript"
+teleportScript.Source = [[
+local tool = script.Parent
+local player = game.Players.LocalPlayer
+local mouse = nil
+
+tool.Equipped:Connect(function(localMouse)
+    mouse = localMouse
+
+    if mouse then
+        mouse.Button1Down:Connect(function()
+            if mouse.Target then
+                local character = player.Character
+                if character and character:FindFirstChild("HumanoidRootPart") then
+                    local pos = mouse.Hit.Position + Vector3.new(0, 3, 0)
+                    character:MoveTo(pos)
+                end
+            end
+        end)
+    end
+end)
+]]
+
+teleportScript.Parent = tool
+
+-- Give the tool to the local player's Backpack
+local player = game.Players.LocalPlayer
+tool.Parent = player:WaitForChild("Backpack")
    end,
 })
