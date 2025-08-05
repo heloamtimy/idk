@@ -47,32 +47,10 @@ Rayfield:Notify({
    Image = nil,
 })
 
-local Slider = MainTab:CreateSlider({
-   Name = "Walkspeed",
-   Range = {0, 300},
-   Increment = 4,
-   Suffix = "Speed",
-   CurrentValue = 16,
-   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
-   end,
-})
-
-local Toggle = MainTab:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Flag = "Toggle1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
-   Callback = function(Value)
-        --[[
-	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
-]]
-local InfiniteJumpEnabled = true
-game:GetService("UserInputService").JumpRequest:connect(function()
-	if InfiniteJumpEnabled then
-		game:GetService"Players".LocalPlayer.Character:FindFirstChildOfClass'Humanoid':ChangeState("Jumping")
-	end
-end)
+local Button = MainTab:CreateButton({
+   Name = "GUI Delete",
+   Callback = function()
+        Rayfield:Destroy()
    end,
 })
 
@@ -108,5 +86,20 @@ local Button = MiscTab:CreateButton({
    Name = "Emote Menu",
    Callback = function()
         loadstring(game:HttpGet("https://yarhm.mhi.im/scr?channel=afem", false))()
+   end,
+})
+
+local ExploitsTab = Window:CreateTab("Exploits", nil) -- Title, Image
+local ExploitsSection = ExploitsTab:CreateSection("Player")
+
+local Slider = MainTab:CreateSlider({
+   Name = "Walkspeed",
+   Range = {0, 300},
+   Increment = 4,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "Slider1", -- A flag is the identifier for the configuration file, make sure every element has a different flag if you're using configuration saving to ensure no overlaps
+   Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = (Value)
    end,
 })
